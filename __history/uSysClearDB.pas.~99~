@@ -1,0 +1,252 @@
+unit uSysClearDB;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, RzCommon, RzEdit, Vcl.StdCtrls,
+  Vcl.Mask, RzLabel, RzLstBox, RzChkLst, Vcl.ExtCtrls, RzPanel,
+  System.ImageList, Vcl.ImgList, cxGraphics, RzTabs, RzButton, Data.DB,
+  mySQLDbTables, Vcl.WinXCtrls, MySQLBatch, Vcl.Menus, RzPrgres;
+
+type
+  TfClearDB = class(TForm)
+    pcClearDB: TRzPageControl;
+    tsTabelas: TRzTabSheet;
+    tsConfig: TRzTabSheet;
+    cxilImagens: TcxImageList;
+    gbTabelas: TRzGroupBox;
+    clTabelas: TRzCheckList;
+    gbConexaoLocal: TRzGroupBox;
+    RzLabel1: TRzLabel;
+    RzLabel2: TRzLabel;
+    RzLabel3: TRzLabel;
+    RzLabel4: TRzLabel;
+    RzLabel5: TRzLabel;
+    eHost: TRzEdit;
+    eDataBase: TRzEdit;
+    eUser: TRzEdit;
+    ePassWord: TRzEdit;
+    nePorta: TRzNumericEdit;
+    rginiClearDB: TRzRegIniFile;
+    mydbCON: TMySQLDatabase;
+    bbConectar: TRzBitBtn;
+    pConectado: TRzPanel;
+    shpConectado: TShape;
+    aiLoading: TActivityIndicator;
+    qTabelas: TMySQLQuery;
+    pBase: TRzPanel;
+    lRegistros: TRzLabel;
+    SQLExec: TMySQLBatchExecute;
+    mbLimpar: TRzMenuButton;
+    pmLimpar: TPopupMenu;
+    mniSim: TMenuItem;
+    mniNao: TMenuItem;
+    pbProgresso: TRzProgressBar;
+    bbConectar1: TRzBitBtn;
+    RzPanel1: TRzPanel;
+    RzLabel6: TRzLabel;
+    lH: TRzLabel;
+    lD: TRzLabel;
+    RzLabel9: TRzLabel;
+    lP: TRzLabel;
+    RzLabel11: TRzLabel;
+    procedure FormCreate(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure mydbCONBeforeConnect(Sender: TObject);
+    procedure bbConectarClick(Sender: TObject);
+    procedure mydbCONAfterConnect(Sender: TObject);
+    procedure mydbCONAfterDisconnect(Sender: TObject);
+    procedure qTabelasAfterOpen(DataSet: TDataSet);
+    procedure mniSimClick(Sender: TObject);
+    procedure mniNaoClick(Sender: TObject);
+  private
+    procedure CarregarINI;
+    procedure GravarINI;
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  fClearDB: TfClearDB;
+
+implementation
+
+{$R *.dfm}
+
+function SoNome(sNome: string): string;
+begin
+  Result := Copy(sNome, 1, AnsiPos('[', sNome)-1);
+  Result := Trim(Result);
+end;
+
+procedure TfClearDB.bbConectarClick(Sender: TObject);
+var
+  i: Integer;
+begin
+  if not mydbCON.Connected then
+  begin
+    mydbCON.Connect;
+
+    if mydbCON.Connected then
+    begin
+      qTabelas.Close;
+      qTabelas.ParamByName('sDB').AsString := Trim(eDataBase.Text);
+      qTabelas.Open;
+    end;
+  end
+  else
+  begin
+
+  end;
+
+  if not qTabelas.IsEmpty then
+  begin
+    clTabelas.Clear;
+    qTabelas.First;
+    while not qTabelas.Eof do
+    begin
+      clTabelas.Items.Add(qTabelas.FieldByName('table_name').AsString + '  [' + IntToStr(qTabelas.FieldByName('table_rows').AsInteger) + ']');
+
+      qTabelas.Next;
+    end;
+
+    pcClearDB.ActivePage := tsTabelas;
+  end;
+
+  for i := 0 to clTabelas.Items.Count -1 do
+    clTabelas.ItemChecked[i] := rginiClearDB.ReadBool('TABELAS', SoNome(clTabelas.Items[i]), False);
+end;
+
+procedure TfClearDB.mniNaoClick(Sender: TObject);
+begin
+//
+end;
+
+procedure TfClearDB.mniSimClick(Sender: TObject);
+var
+  i, iCont: Integer;
+begin
+  pbProgresso.TotalParts    := clTabelas.Items.Count;
+  pbProgresso.PartsComplete := 0;
+  iCont                     := 0;
+
+  for i := 0 to clTabelas.Items.Count -1 do
+  begin
+    if clTabelas.ItemChecked[i] then
+    begin
+      SQLExec.SQL.Clear;
+      SQLExec.SQL.Add('TRUNCATE TABLE ' + SoNome(clTabelas.Items[i]) + ';');
+      SQLExec.ExecSQL;
+
+      Inc(iCont);
+    end;
+
+    pbProgresso.IncPartsByOne;
+  end;
+  pbProgresso.PartsComplete := 0;
+
+  if iCont > 0 then
+  begin
+    Application.MessageBox(PChar('Processo concluído com sucesso!'),
+      PChar('Atenção!'), MB_OK + MB_ICONINFORMATION);
+  end;
+end;
+
+procedure TfClearDB.CarregarINI;
+var
+  i: Integer;
+begin
+  with rginiClearDB do
+  begin
+    eHost.Text         := ReadString('CONEXAO',  'HOST',      '');
+    eDataBase.Text     := ReadString('CONEXAO',  'DATABASE',  '');
+    nePorta.IntValue   := ReadInteger('CONEXAO', 'PORTA',     3306);
+    eUser.Text         := ReadString('CONEXAO',  'USER',      '');
+    ePassword.Text     := ReadString('CONEXAO',  'PASSWORD',  '');
+  end;
+end;
+
+procedure TfClearDB.GravarINI;
+var
+  i: Integer;
+begin
+  with rginiClearDB do
+  begin
+    WriteString('CONEXAO', 'HOST',      eHost.Text);
+    WriteString('CONEXAO', 'DATABASE',  eDataBase.Text);
+    WriteString('CONEXAO', 'PORTA',     nePorta.Text);
+    WriteString('CONEXAO', 'USER',      eUser.Text);
+    WriteString('CONEXAO', 'PASSWORD',  ePassword.Text);
+
+    for i := 0 to clTabelas.Items.Count -1 do
+      WriteBool('TABELAS', SoNome(clTabelas.Items[i]), clTabelas.ItemChecked[i]);
+  end;
+end;
+
+procedure TfClearDB.mydbCONAfterConnect(Sender: TObject);
+begin
+  shpConectado.Brush.Color  := $0017D04A;
+  aiLoading.Animate         := True;
+  bbConectar1.Visible       := False;
+  mbLimpar.Enabled          := True;
+
+  lH.Caption := eHost.Text;
+  lD.Caption := eDataBase.Text;
+  lP.Caption := nePorta.Text;
+end;
+
+procedure TfClearDB.mydbCONAfterDisconnect(Sender: TObject);
+begin
+  shpConectado.Brush.Color := $00172EF7;
+  aiLoading.Animate        := False;
+  bbConectar1.Visible      := True;
+  mbLimpar.Enabled         := False;
+
+  lH.Caption := '...';
+  lD.Caption := '...';
+  lP.Caption := '...';
+end;
+
+procedure TfClearDB.mydbCONBeforeConnect(Sender: TObject);
+var
+  sErro: string;
+begin
+  GravarINI;
+  sErro := '';
+  // CONECTANDO BD LOCAL
+  try
+    with mydbCON do
+    begin
+      Host          := rginiClearDB.ReadString('CONEXAO', 'HOST', '');
+      DatabaseName  := rginiClearDB.ReadString('CONEXAO', 'DATABASE', '');
+      UserName      := rginiClearDB.ReadString('CONEXAO', 'USER', '');
+      UserPassword  := rginiClearDB.ReadString('CONEXAO', 'PASSWORD', '');
+      Port          := rginiClearDB.ReadInteger('CONEXAO', 'PORTA', 3306);
+    end;
+  except
+    on E: exception do
+    begin
+      sErro := E.message;
+    end;
+  end;
+end;
+
+procedure TfClearDB.qTabelasAfterOpen(DataSet: TDataSet);
+begin
+  lRegistros.Caption := IntToStr(qTabelas.RecordCount) + ' Tabelas ';
+end;
+
+procedure TfClearDB.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  mydbCON.Disconnect;
+  GravarINI;
+end;
+
+procedure TfClearDB.FormCreate(Sender: TObject);
+begin
+  CarregarINI;
+end;
+
+end.

@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+	<Transactions>
+    <Transaction>2018/01/30 19:05:20.000.316,=C:\Users\Rudnei\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2018/04/04 10:42:11.000.674,=C:\Users\Rudnei\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2018/11/16 17:09:50.000.004,=C:\Users\Rudnei\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2018/12/05 16:49:00.000.367,=C:\Users\Rudnei\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2019/02/05 14:04:40.000.178,=C:\Users\Rudnei\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2021/07/16 17:24:45.000.672,=C:\Users\Rudnei\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2023/12/01 10:21:12.000.228,=C:\Users\Rudnei\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2023/12/01 10:34:28.000.189,C:\SysProjetos\SysClearDB\uSysClearDB.pas=C:\Users\Rudnei\Documents\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2023/12/01 10:34:28.000.189,C:\SysProjetos\SysClearDB\uSysClearDB.dfm=C:\Users\Rudnei\Documents\Embarcadero\Studio\Projects\Unit1.dfm</Transaction>
+    <Transaction>2023/12/01 10:34:31.000.033,C:\SysProjetos\SysClearDB\SysClearDB.dproj=C:\Users\Rudnei\Documents\Embarcadero\Studio\Projects\Project1.dproj</Transaction>
+  </Transactions>
+	<ActiveMobileDevice>
+		<NoProfile iOSSimulator="iPhone5"/>
+		<PTesteRud iOSSimulator="iPhone5"/>
+	</ActiveMobileDevice>
+</BorlandProject>

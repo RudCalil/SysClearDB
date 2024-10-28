@@ -1,0 +1,14 @@
+program SysClearDB;
+
+uses
+  Vcl.Forms,
+  uSysClearDB in 'uSysClearDB.pas' {fClearDB};
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TfClearDB, fClearDB);
+  Application.Run;
+end.
